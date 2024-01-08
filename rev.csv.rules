@@ -1,0 +1,63 @@
+# HLEDGER aib current account csv conversion rules
+
+# skip the header line
+
+; Posted Account, Posted Transactions Date, Description1, Description2, Description3, Debit Amount, Credit Amount,Balance,Posted Currency,Transaction Type,Local Currency Amount,Local Currency
+; fields  posted_account, date, desc1, desc2, desc3, amount-out, amount-in, balance, currency, transaction_type, local_currency_amount, local_currency
+
+;      Type,     Product,     Started Date,    Completed Date,          Description, Amount,     Fee,      Currency,     State,     Balance
+fields rev-type, rev-product, rev-started-date,            date, description,   amount, rev-fee,  rev-currency, rev-state, balance
+
+date-format %Y-%m-%d
+
+; date %rev-started-timestamp
+
+if %rev-state
+REVERTED
+ skip
+
+; if %rev-started-timestamp
+; (20..-..-..)
+;  date \1
+
+; if %rev-completed-timestamp
+; (20..-..-..)
+;  comment1 completed date:\1
+
+; if %date
+; 2099-12-31
+;  skip
+
+currency €
+; amount-out %fee
+
+# set the currency
+comment %rev-type %rev-product %rev-started-date
+; comment1 completed date:%date
+
+balance-type =*
+
+# set the base account for all txns
+account1  rev
+
+; amount %rev-amount-%rev-fee
+; amount2 (%rev-amount)
+
+if %rev-fee [1-9]
+  comment1 fees:%rev-fee
+
+;   account3  exp:bank_fees
+;   amount3   %rev-fee
+
+if %rev-state COMPLETED
+  status *
+
+if %currency ^EUR$
+  currency €
+
+if %type
+TOPUP
+TRANSFER
+  account2 tx
+
+include categorize.csv.rules
