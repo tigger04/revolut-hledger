@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use Text::CSV;
+use utf8; 
 
 # Help text
 my $help_text = << 'HELP';
@@ -25,6 +26,9 @@ if ($ARGV[0] && ($ARGV[0] eq '-h' || $ARGV[0] eq '--help')) {
 # Initialize CSV parser
 my $csv = Text::CSV->new({ binary => 1, auto_diag => 1, eol => "\n" });
 
+# Set UTF-8 encoding for STDOUT
+binmode STDOUT, ':utf8';
+
 # Process header
 my $header = $csv->getline(\*STDIN);
 push @$header, "Amount_with_Fee"; # Add new column header
@@ -36,9 +40,11 @@ while (my $row = $csv->getline(\*STDIN)) {
     $row->[2] =~ s/\s\d{2}:\d{2}:\d{2}//g;
     $row->[3] =~ s/\s\d{2}:\d{2}:\d{2}//g;
 
-    # Calculate new column (Amount + Fee)
-    my $amount_with_fee = $row->[5] + $row->[6];
+    # Calculate new column (Amount - Fee)
+    my $amount_with_fee = $row->[5] - $row->[6];
     push @$row, $amount_with_fee; # Add calculated value as a new column
 
     $csv->print(\*STDOUT, $row);
 }
+
+print "\n";
